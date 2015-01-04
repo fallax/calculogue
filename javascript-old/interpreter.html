@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<script src="tisbl.js"></script>
+		<script>
+			function go()
+			{
+				document.getElementById("output").innerHTML += "JS TISBL interpreter.<br>";
+			}
+
+			function run()
+			{
+				var box = document.getElementById("input").value;
+				document.getElementById("output").innerHTML += "<br><br><br>&raquo;&nbsp;" + box;
+				var response = tisbl(box);
+				document.getElementById("output").innerHTML += "<br><br>" + output;
+				document.getElementById("input").value = "";
+			}
+		</script>
+	</head>
+	<body onload="go()">
+		<textarea id="input"></textarea>
+		<input type="button" value="Run" id="run" onclick="run()">
+		<pre id="output"></pre>
+	</body>
+</html>
