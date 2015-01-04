@@ -12,7 +12,8 @@
 window.run = () ->
 	box = document.getElementById("input").value
 	document.getElementById("output").innerHTML += "<br><br><br>&raquo;&nbsp;" + box
-	response = tisbl(box)
+	environment = {output: ""}
+	response = tisbl(box, environment)
 	document.getElementById("output").innerHTML += "<br><br>" + response
 	document.getElementById("input").value = ""
 

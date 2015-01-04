@@ -6,8 +6,7 @@
 
 # Start a new context
 # TODO: IS THIS CORRECT?
-window.tisbl = (input) ->
-  localoutput = ""
+window.tisbl = (input, environment) ->
   lines = input.split("\n")
   input = ""
   for i of lines
@@ -38,14 +37,12 @@ window.tisbl = (input) ->
     output: null
     parent: null
 
-  outputContext = executeContext(root, localoutput)
+  outputContext = executeContext(root, environment)
   console.log "Output context:"
   console.log outputContext
-  console.log "Local output text:"
-  console.log localoutput
   console.log "Global output text:"
-  console.log output
-  output
+  console.log environment.output
+  environment.output
 
 parseStackCharacter = (character, context, paramStack) ->
   switch character
@@ -65,7 +62,7 @@ filterStackCharacter = (character) ->
       ""
     else
       character
-executeContext = (context) ->
+executeContext = (context, environment) ->
   halting = false
   while not halting and context.execution.length > 0
     
@@ -119,15 +116,15 @@ executeContext = (context) ->
         )
         
         # Execute that context
-        executeContext verbContext, output
+        executeContext verbContext, output, environment
       else if stdlib[token]
         
         # There is an entry for this in the built in functions list, execute that
-        stdlib[token] inputStack, outputStack
+        stdlib[token] inputStack, outputStack, environment
       else
         
         # This verb doesn't seem to be defined, throw an error
-        output += "* Error: Unknown verb '" + token + "'"
+        environment.output += "* Error: Unknown verb '" + token + "'"
         halting = true
     else
       
@@ -139,11 +136,12 @@ executeContext = (context) ->
         when "'"
           outputStack.push token.substr(1)
         else
-          output += "* Error: Couldn't read noun '" + token + "' - did you forget ', #, or \\ ?"
+          environment.output += "* Error: Couldn't read noun '" + token + "' - did you forget ', #, or \\ ?"
           halting = true
   context
+
 verbs = {}
-output = ""
+
 stdlib =
   mv: (inputStack, outputStack) ->
     outputStack.push inputStack.pop()
@@ -164,8 +162,8 @@ stdlib =
     outputStack.push b
     return
 
-  out: (inputStack, outputStack) ->
-    output += inputStack.pop()
+  out: (inputStack, outputStack, environment) ->
+    environment.output += inputStack.pop()
     return
 
   _: (inputStack, outputStack) ->
