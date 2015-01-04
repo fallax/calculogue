@@ -143,95 +143,57 @@ executeContext = (context, environment) ->
 verbs = {}
 
 stdlib =
-  mv: (inputStack, outputStack) ->
-    outputStack.push inputStack.pop()
-    return
-
-  rm: (inputStack, outputStack) ->
-    inputStack.pop()
-    return
-
-  dup: (inputStack, outputStack) ->
-    outputStack.push inputStack[inputStack.length - 1]
-    return
+  mv: (inputStack, outputStack) -> outputStack.push inputStack.pop()
+  rm: (inputStack, outputStack) -> inputStack.pop()
+  dup: (inputStack, outputStack) -> outputStack.push inputStack[inputStack.length - 1]
+  out: (inputStack, outputStack, environment) -> environment.output += inputStack.pop()
+  _: (inputStack, outputStack) -> outputStack.push inputStack.pop() + " "
+  n: (inputStack, outputStack) -> outputStack.push inputStack.pop() + "\n"
 
   swap: (inputStack, outputStack) ->
-    a = inputStack.pop()
-    b = inputStack.pop()
-    outputStack.push a
-    outputStack.push b
-    return
+    outputStack.push inputStack.pop()
+    outputStack.push inputStack.pop()
 
-  out: (inputStack, outputStack, environment) ->
-    environment.output += inputStack.pop()
-    return
-
-  _: (inputStack, outputStack) ->
-    outputStack.push inputStack.pop() + " "
-    return
-
-  n: (inputStack, outputStack) ->
-    outputStack.push inputStack.pop() + "\n"
-    return
+  # Arithmetic - TODO - requires properly implementing the number type in TISBL
 
   "+": (inputStack, outputStack) ->
     a = inputStack.pop()
     b = inputStack.pop()
     outputStack.push b + a
-    return
 
   "-": (inputStack, outputStack) ->
     a = inputStack.pop()
     b = inputStack.pop()
     outputStack.push b - a
-    return
 
   "*": (inputStack, outputStack) ->
     a = inputStack.pop()
     b = inputStack.pop()
     outputStack.push b * a
-    return
 
   "eq?": (inputStack, outputStack) ->
     a = inputStack.pop()
     b = inputStack.pop()
     outputStack.push (if b is a then 1 else 0)
-    return
 
   not: (inputStack, outputStack) ->
     a = inputStack.pop()
     outputStack.push (if a is 0 then 1 else 0)
-    return
 
   verb: (inputStack, outputStack) ->
     verbName = inputStack.pop()
     verbLength = inputStack.pop()
-    verbStack = []
-    i = 0
-
-    while i < verbLength
-      verbStack.push inputStack.pop()
-      i++
-    verbs[verbName] = verbStack
-    return
+    verbs[verbName] = (inputStack.pop() for i in [0..verbLength-1])
 
   multipop: (inputStack, outputStack) ->
     length = inputStack.pop()
-    i = 0
-
-    while i < length
+    for [0..length]
       outputStack.push inputStack.pop()
-      i++
-    return
 
   if: (inputStack, outputStack) ->
     length = inputStack.pop()
-    stack = []
-    i = 0
+    stack = (inputStack.pop() for i in [0..(length-1)])
 
-    while i < length
-      stack.push inputStack.pop()
-      i++
     context = (
       primary: []
       secondary: []
@@ -246,17 +208,13 @@ stdlib =
       executeContext context, output
     else
       console.log "not running if statement (" + condition + ")"
-    return
 
   while: (inputStack, outputStack) ->
     console.log "running while loop"
-    length = inputStack.pop()
-    stack = []
-    i = 0
 
-    while i < length
-      stack.push inputStack.pop()
-      i++
+    length = inputStack.pop()
+    stack = (inputStack.pop() for i in [0..(length-1)])
+
     loop
       condition = inputStack.pop()
       if condition is 0
@@ -273,4 +231,3 @@ stdlib =
           parent: null
         )
         executeContext context, output
-    return
