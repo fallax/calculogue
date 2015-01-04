@@ -1,6 +1,8 @@
+\trace=0
+
 'PASS_\out \n \out
 #1 '.'PASS_If_statement_1 #1 \if \n \out
-'PASS_If_statement_0 #0 '.'FAIL_If_statement_0 #1 \if \n \out \rm
+'PASS_If_statement_0 #0 '.'FAIL_If_statement_0 #1 \if \n \out
 
 'PASS_End_of_line_comments \n \out % test comment
 % Test whole line comment
@@ -23,26 +25,25 @@
 
 % Checking for equality - assumes that \eq? is defined in your interpreter!
 #3 #3 \eq? '.'PASS_Int_equality_true #1 \if \n \out
-'PASS_Int_equality_false #3 #4 \eq? '.'FAIL_Int_equality_false #1 \if \n \out \rm
+'PASS_Int_equality_false #3 #4 \eq? '.'FAIL_Int_equality_false #1 \if \n \out
 
 % Adding ints
 #3 #4 \+ #7 \eq? '.'PASS_Int_addition #1 \if \n \out
 
 % Parsing floats
-#3.5 'PASS_parse_float \n \out
-\rm
+#3.5 'PASS_parse_float \n \out \rm
 
 % Adding floats
-#4.5 #3.5 \+ #8 \eq? '.'PASS_Float_addition #1 \if \n \out
+#4.5 #3.5 \+ #8.0 \eq? '.'PASS_Float_addition #1 \if \n \out
 
 % If on second data stack
 :#1 :'.'PASS_Parse_to_: :#1 \:if \n \out
 
 % Adding onto second data stack
-#4.5 #3.5 \+: :#8 \:eq '.'PASS_Float_addition_to_: #1 \if \n \out
+#4.5 #3.5 \+: :#8.0 \:eq? '.'PASS_Float_addition_to_: #1 \if \n \out
 
 % Adding from second data stack
-:#4.5 :#3.5 \:+ #8 \eq? '.'PASS_Float_addition_from_: #1 \if \n \out
+:#4.5 :#3.5 \:+ #8.0 \eq? '.'PASS_Float_addition_from_: #1 \if \n \out
 
 % Removing from the execution stack
 #1 \,rm #0 '.'PASS_Remove_from_, #1 \if \n \out
@@ -95,7 +96,7 @@
  '\mv.
 #24 'total \verb
 
-#4 #5 #6 #3 \sum #15 \eq? '.'PASS_Total_example #1 \if \n \out
+#4 #5 #6 #3 \total #15 \eq? '.'PASS_Total_example #1 \if \n \out
 
 'The_following_line_should_be_an_error_message. \n \out 
 
