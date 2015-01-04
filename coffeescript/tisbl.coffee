@@ -6,8 +6,8 @@
 
 # Start a new context
 # TODO: IS THIS CORRECT?
-tisbl = (input) ->
-  output = ""
+window.tisbl = (input) ->
+  localoutput = ""
   lines = input.split("\n")
   input = ""
   for i of lines
@@ -38,9 +38,15 @@ tisbl = (input) ->
     output: null
     parent: null
 
-  outputContext = executeContext(root, output)
+  outputContext = executeContext(root, localoutput)
+  console.log "Output context:"
   console.log outputContext
-  "done."
+  console.log "Local output text:"
+  console.log localoutput
+  console.log "Global output text:"
+  console.log output
+  output
+
 parseStackCharacter = (character, context, paramStack) ->
   switch character
     when "." # Verb input stack - copy parent context

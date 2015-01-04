@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Coffeescript TISBL test</title>
+
+<script src="coffee-script.js"></script>
+
+<script type="text/coffeescript" src="tisbl.coffee"></script>
+
+<script type="text/coffeescript">
+window.run = () ->
+	box = document.getElementById("input").value
+	document.getElementById("output").innerHTML += "<br><br><br>&raquo;&nbsp;" + box
+	response = tisbl(box)
+	document.getElementById("output").innerHTML += "<br><br>" + response
+	document.getElementById("input").value = ""
+
+console.log "started OK"
+</script>
+
+</head>
+
+<body>
+Test TISBL interpreter
+
+<textarea id="input"></textarea>
+<input type="button" value="Run" id="run" onclick="run()">
+<pre id="output"></pre>
+
+</body>
+</html>
