@@ -85,7 +85,7 @@ executeContext = (context, environment) ->
         )
         
         # Execute that context
-        executeContext verbContext, output, environment
+        executeContext verbContext, environment
       else if stdlib[token]
         
         # There is an entry for this in the built in functions list, execute that
