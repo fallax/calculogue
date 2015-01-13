@@ -1,4 +1,8 @@
-TISBL interpreter.
+# Literate Coffeescript TISBL interpreter
+
+This is an experimental literate Coffeescript intepreter. This does not yet implement all of the features described in the main spec.
+
+## Invoking the interpreter
 
 TISBL is always interpreted within some kind of environment that provides a standard output to write to.
 
@@ -18,6 +22,8 @@ TISBL is always interpreted within some kind of environment that provides a stan
       outputContext = executeContext(root, environment)
       environment.output
 
+## Loading TISBL code in from a file
+
     load = (rawText) ->
 
 TISBL code is a set of lines, seperated by newline characters.
@@ -36,6 +42,8 @@ Lines consist of the actual text to be read by the interpreter, optionally follo
 The text read by the interpreter consists of a set of "tokens", seperated by whitespace. 
 
       input.split(" ")
+
+## Executing a context
 
     parseStackCharacter = (character, context, paramStack) ->
       switch character
@@ -120,6 +128,8 @@ The text read by the interpreter consists of a set of "tokens", seperated by whi
               environment.output += "* Error: Couldn't read noun '" + token + "' - did you forget ', #, or \\ ?"
               halting = true
       context
+
+## TISBL built-in functions
 
     verbs = {}
 
