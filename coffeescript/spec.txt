@@ -1,0 +1,45 @@
+TISBL
+
+Anna's sort-of spec thing
+
+
+TISBL code is a set of lines, seperated by newline characters.
+
+Lines are:
+
+zero or more "tokens", seperated by spaces
+then, a % character, followed by an arbritrary number of characters.
+
+Each token consists of, in order:
+
+one "token type identifier"
+a body.
+
+The body is a string of characters, as follows:
+
+if the token type is "\": zero or one "stack identifier"s,
+one or more characters that are the "body" of the token,
+zero or one "stack identifier"s
+
+Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received.
+
+Stack identifiers represent:
+".": if the leading character, the input stack of the parent context; if the trailing character, the output stack of the parent context
+":": secondary data stack
+",": execution stack
+";": parent execution stack
+no identifier: primary data stack
+
+The context is created with the following stacks set:
+Primary: empty stack
+Secondary: empty stack
+Input: stack specified by the *leading* stack identifier.
+Output: stack specified by the *trailing* stack identifier.
+Parent: the execution stack of the parent context.
+
+Based on the token type identifier, we decide what to do to execute the token.
+
+Token type identifiers are:
+"#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
+"'": interpret the body as a string. Push the string to the output stack.
+"\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
