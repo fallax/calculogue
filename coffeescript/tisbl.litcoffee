@@ -1,18 +1,9 @@
 TISBL interpreter.
 
+TISBL is always interpreted within some kind of environment that provides a standard output to write to.
+
     window.tisbl = (input, environment) ->
-      lines = input.split("\n")
-      input = ""
-
-      for line in lines when line.length > 0 and line[0] isnt "%"  
-        # Remove any comments if they exist
-        if line.indexOf(" %") > -1
-          # TODO: do this in a better way that can cope with other whitespace characters
-          input += line.substr(0, line.indexOf(" %")) + " "
-        else
-          input += line + " "
-
-      splitInput = input.split(" ")
+      splitInput = load(input);
       splitInput.reverse()
       
       # initialise root stack
@@ -26,6 +17,25 @@ TISBL interpreter.
 
       outputContext = executeContext(root, environment)
       environment.output
+
+    load = (rawText) ->
+
+TISBL code is a set of lines, seperated by newline characters.
+
+      lines = rawText.split("\n")
+
+Lines consist of the actual text to be read by the interpreter, optionally followed by " %" and a comment (which is ignored, so we can strip off).
+
+      input = ""
+      for line in lines when line.length > 0 and line[0] isnt "%"
+        if line.indexOf(" %") > -1
+          input += line.substr(0, line.indexOf(" %")) + " "
+        else
+          input += line + " "
+
+The text read by the interpreter consists of a set of "tokens", seperated by whitespace. 
+
+      input.split(" ")
 
     parseStackCharacter = (character, context, paramStack) ->
       switch character
