@@ -50,7 +50,7 @@ Lines are:
 
 * or, a line to be wholly read by the interpreter.
 
-This method filters out the comment text and just leaves 
+This method filters out the comment text and just leaves the code that needs to be interpreted.
 
     trimComment = (line) ->
       if line.indexOf("%") is 0
