@@ -40,13 +40,17 @@ The text read by the interpreter consists of a set of "tokens", seperated by whi
 
       input.split(" ").reverse()
 
-## Remove comments from lines in a file
+### Removing comments from code
 
 Lines are:
 
-either, a line to be ignored by the interpreter, which must begin with "%"
-or, text to be read by the interpreter, followed by " %" and a comment
-or, a line to be wholly read by the interpreter.
+* either, a line to be ignored by the interpreter, which must begin with "%"
+
+* or, text to be read by the interpreter, followed by " %" and a comment
+
+* or, a line to be wholly read by the interpreter.
+
+This method filters out the comment text and just leaves 
 
     trimComment = (line) ->
       if line.indexOf("%") is 0
