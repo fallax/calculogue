@@ -8,7 +8,6 @@ TISBL is always interpreted within some kind of environment that provides a stan
 
     window.tisbl = (input, environment) ->
       splitInput = load(input);
-      splitInput.reverse()
       
       # initialise root stack
       root =
@@ -24,24 +23,38 @@ TISBL is always interpreted within some kind of environment that provides a stan
 
 ## Loading TISBL code in from a file
 
+TISBL code is a set of lines, seperated by newline characters. 
+
     load = (rawText) ->
-
-TISBL code is a set of lines, seperated by newline characters.
-
       lines = rawText.split("\n")
 
-Lines consist of the actual text to be read by the interpreter, optionally followed by " %" and a comment (which is ignored, so we can strip off).
+Some lines contain comments - we remove them before trying to interpret the code.
+      
+      trimmedLines = (trimComment line for line in lines)
 
-      input = ""
-      for line in lines when line.length > 0 and line[0] isnt "%"
-        if line.indexOf(" %") > -1
-          input += line.substr(0, line.indexOf(" %")) + " "
+All linebreaks are ignored after comments have been removed.
+
+      input = trimmedLines.join(" ");
+
+The text read by the interpreter consists of a set of "tokens", seperated by whitespace. Tokens appear in the text in the *opposite* order to that in which they are executed.
+
+      input.split(" ").reverse()
+
+## Remove comments from lines in a file
+
+Lines are:
+
+either, a line to be ignored by the interpreter, which must begin with "%"
+or, text to be read by the interpreter, followed by " %" and a comment
+or, a line to be wholly read by the interpreter.
+
+    trimComment = (line) ->
+      if line.indexOf("%") is 0
+          return ""
+      if line.indexOf(" %") > -1
+          line.substr(0, line.indexOf(" %"))
         else
-          input += line + " "
-
-The text read by the interpreter consists of a set of "tokens", seperated by whitespace. 
-
-      input.split(" ")
+          line
 
 ## Executing a context
 
