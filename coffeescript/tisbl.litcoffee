@@ -120,9 +120,9 @@ What we do with the new context depends on the type of token.
 Based on the token type identifier, we decide what to do to execute the token.
 
 Token type identifiers are:
-"#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
-"'": interpret the body as a string. Push the string to the output stack.
-"\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
+* "#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
+* "'": interpret the body as a string. Push the string to the output stack.
+* "\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
 
         # Execute the token
         if verb
@@ -165,11 +165,11 @@ Token type identifiers are:
       context
 
 Stack identifiers represent:
-".": if the leading character, the input stack of the parent context; if the trailing character, the output stack of the parent context
-":": secondary data stack
-",": execution stack
-";": parent execution stack
-no identifier: primary data stack
+* ".": if the leading character, the input stack of the parent context; if the trailing character, the output stack of the parent context
+* ":": secondary data stack
+* ",": execution stack
+* ";": parent execution stack
+* no identifier: primary data stack
 
     parseStackCharacter = (character, context, paramStack) ->
       switch character
