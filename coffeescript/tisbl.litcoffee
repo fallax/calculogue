@@ -62,18 +62,7 @@ This method filters out the comment text and just leaves the code that needs to 
 
 ## Executing a context
 
-    parseStackCharacter = (character, context, paramStack) ->
-      switch character
-        when "." then paramStack # Verb input stack - copy parent context
-        when ":" then context.secondary # Secondary data stack
-        when "," then context.execution # Execution stack
-        when ";" then context.parent # Parent execution stack
-        else context.primary # Primary data stack
-          
-    filterStackCharacter = (character) ->
-      switch character
-        when ".", ":", ",", ";" then ""
-        else character
+When executing a context, we attempt to execute each token in order.
 
     executeContext = (context, environment) ->
       halting = false
@@ -83,12 +72,23 @@ This method filters out the comment text and just leaves the code that needs to 
         token = context.execution.pop()
         continue if token.length < 1 # ignore any 0 length tokens completely
         
+Each token consists of, in order:
+
+one "token type identifier"
+a body.
+
         # Check if the token is a verb
         verb = token[0] is "\\"
 
         # if so, strip the leading \ character
         if verb then token = token.substr(1)
         
+The body is a string of characters, as follows:
+
+if the token type is "\": zero or one "stack identifier"s,
+one or more characters that are the "body" of the token,
+zero or one "stack identifier"s
+
         # Check to see if the start or end characters are stack characters; 
         # if so, blank them out, and return the correct stack
         inputStack = null
@@ -105,7 +105,25 @@ This method filters out the comment text and just leaves the code that needs to 
           inputStack = null
           outputStack = parseStackCharacter(start, context, context.output)
           token = filterStackCharacter(start) + middle + end
+
+Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received.
         
+The context is created with the following stacks set:
+* Primary: empty stack
+* Secondary: empty stack
+* Input: stack specified by the *leading* stack identifier.
+* Output: stack specified by the *trailing* stack identifier.
+* Parent: the execution stack of the parent context.
+
+What we do with the new context depends on the type of token.
+
+Based on the token type identifier, we decide what to do to execute the token.
+
+Token type identifiers are:
+"#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
+"'": interpret the body as a string. Push the string to the output stack.
+"\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
+
         # Execute the token
         if verb
           if verbs[token]
@@ -145,6 +163,26 @@ This method filters out the comment text and just leaves the code that needs to 
               environment.output += "* Error: Couldn't read noun '" + token + "' - did you forget ', #, or \\ ?"
               halting = true
       context
+
+Stack identifiers represent:
+".": if the leading character, the input stack of the parent context; if the trailing character, the output stack of the parent context
+":": secondary data stack
+",": execution stack
+";": parent execution stack
+no identifier: primary data stack
+
+    parseStackCharacter = (character, context, paramStack) ->
+      switch character
+        when "." then paramStack # Verb input stack - copy parent context
+        when ":" then context.secondary # Secondary data stack
+        when "," then context.execution # Execution stack
+        when ";" then context.parent # Parent execution stack
+        else context.primary # Primary data stack
+          
+    filterStackCharacter = (character) ->
+      switch character
+        when ".", ":", ",", ";" then ""
+        else character
 
 ## TISBL built-in functions
 
