@@ -173,6 +173,8 @@ Stack identifiers represent:
 * ";": parent execution stack
 * no identifier: primary data stack
 
+TODO: work out how to get GitHub to understand when I end an unordered list and start actual code
+
     stackIdentifiers = 
       ".": (context, position) -> (if position is 0 then context.input else context.output),
       ":": (context, position) -> context.secondary,
