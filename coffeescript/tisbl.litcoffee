@@ -2,6 +2,12 @@
 
 This is an experimental literate Coffeescript intepreter. This does not yet implement all of the features described in the main spec.
 
+## Utility functions
+
+For the purposes of making the rest of the code slightly clearer, we define a simple "contains" method that checks a list to see if contains an item.
+
+    Array.prototype.contains = (element) -> (return true) for item in this when item is element; false;
+
 ## Invoking the interpreter
 
 TISBL is always interpreted within some kind of environment that provides a standard output to write to.
@@ -98,22 +104,15 @@ zero or one "stack identifier"s
         middle = (if token.length > 2 then token.substr(1, token.length - 2) else "")
 
         if verb
-          inputStack = parseStackCharacter(start, context, context.input)
-          outputStack = parseStackCharacter(end, context, context.output)
-          token = filterStackCharacter(start) + middle + filterStackCharacter(end)
+          inputStack = parseStackCharacter(start, context, 0)
+          outputStack = parseStackCharacter(end, context, 999)
+          token = filterStackIdentifier(start) + middle + filterStackIdentifier(end)
         else
           inputStack = null
-          outputStack = parseStackCharacter(start, context, context.output)
-          token = filterStackCharacter(start) + middle + end
+          outputStack = parseStackCharacter(start, context, 999)
+          token = filterStackIdentifier(start) + middle + end
 
-Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received.
-        
-The context is created with the following stacks set:
-* Primary: empty stack
-* Secondary: empty stack
-* Input: stack specified by the *leading* stack identifier.
-* Output: stack specified by the *trailing* stack identifier.
-* Parent: the execution stack of the parent context.
+Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received and their positions.
 
 What we do with the new context depends on the type of token.
 
@@ -164,6 +163,9 @@ Token type identifiers are:
               halting = true
       context
 
+
+### Stack identifiers
+
 Stack identifiers represent:
 * ".": if the leading character, the input stack of the parent context; if the trailing character, the output stack of the parent context
 * ":": secondary data stack
@@ -171,18 +173,24 @@ Stack identifiers represent:
 * ";": parent execution stack
 * no identifier: primary data stack
 
-    parseStackCharacter = (character, context, paramStack) ->
-      switch character
-        when "." then paramStack # Verb input stack - copy parent context
-        when ":" then context.secondary # Secondary data stack
-        when "," then context.execution # Execution stack
-        when ";" then context.parent # Parent execution stack
-        else context.primary # Primary data stack
+    stackIdentifiers = 
+      ".": (context, position) -> (if position is 0 then context.input else context.output),
+      ":": (context, position) -> context.secondary,
+      ",": (context, position) -> context.execution,
+      ";": (context, position) -> context.parent,
+      "": (context, position) -> context.primary
+
+    parseStackCharacter = (character, context, position) ->
+      console.log "Loooking up " + character
+      if Object.keys(stackIdentifiers).contains character
+        stackIdentifiers[character] context, position
+      else 
+        context.primary
           
-    filterStackCharacter = (character) ->
-      switch character
-        when ".", ":", ",", ";" then ""
-        else character
+## Getting leading or trailing characters
+
+    filterStackIdentifier = (character) ->
+      if Object.keys(stackIdentifiers).contains character then "" else character
 
 ## TISBL built-in functions
 
