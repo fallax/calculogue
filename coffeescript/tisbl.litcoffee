@@ -95,6 +95,25 @@ if the token type is "\": zero or one "stack identifier"s,
 one or more characters that are the "body" of the token,
 zero or one "stack identifier"s
 
+
+        ###
+
+        Rough plan for this bit:
+
+        - get the "token type" character
+        - get the first "stack identifier" (character or "") or null if not a verb
+        - get the last "stack identifier" (character or "")
+
+        - construct a context based on the stack identifiers
+
+        - get the token body
+          - work out the start and end of the substring that is the token body, based on the stack identifiers
+          - use substring to get the token itself
+
+        - execute the context using the token type and the token body
+
+        ###
+
         # Check to see if the start or end characters are stack characters; 
         # if so, blank them out, and return the correct stack
         inputStack = null
