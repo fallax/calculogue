@@ -17,6 +17,17 @@ window.run = () ->
 	document.getElementById("output").innerHTML += "<br><br>" + response
 	document.getElementById("input").value = ""
 
+window.test = () ->
+
+	document.getElementById("output").innerHTML += "Loading 'check.tisbl' <br>"
+	client = new XMLHttpRequest();
+	client.open 'GET', 'check.tisbl'
+	client.overrideMimeType("text/tisbl")
+	client.onreadystatechange = () ->
+	  if client.responseText
+	  	document.getElementById("input").value = client.responseText
+	client.send()
+
 console.log "started OK"
 </script>
 
@@ -27,6 +38,7 @@ Test TISBL interpreter
 
 <textarea id="input"></textarea>
 <input type="button" value="Run" id="run" onclick="run()">
+<input type="button" value="Test" id="test" onclick="test()">
 <pre id="output"></pre>
 
 </body>
