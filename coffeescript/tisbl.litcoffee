@@ -96,25 +96,17 @@ Or:
           tokenIdentifier = token[0]
           leadingStack = tryGetStackIdentifier token[1]
           trailingStack = tryGetStackIdentifier token[token.length - 1]
+          message = token.substring (if leadingStack? and leadingStack.length is 1 then 2 else 1), token.length - (if trailingStack.length is 1 then 1 else 0)
         else
           leadingStack = null
           trailingStack = tryGetStackIdentifier token[0]
-          if trailingStack then tokenIdentifier = token[0] else tokenIdentifier = token[1]
-        
-        messageStart = if leadingStack? and leadingStack.length is 1 then 2 else 1
-        messageEnd = token.length - (if trailingStack.length is 1 then 0 else -1)
-        message = token.substring messageStart, messageEnd
+          if trailingStack is "" then tokenIdentifier = token[0] else tokenIdentifier = token[1]
+          message = token.substring (if trailingStack.length is 1 then 2 else 1), token.length
        
 Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received and their positions.
 
-        console.log "Making new context"
-        console.log "Verb: " + verb + "! "
-        console.log "Token: " + token 
-        console.log "Message: '" + message + "'"
-        console.log "(" + messageStart + " - " + messageEnd + ")"
-        console.log "Leading: " + leadingStack
-        console.log "Trailing: " + trailingStack
-        console.log context
+        console.log "* " + token + " = v: " + verb + " ti: " + tokenIdentifier + " l: " + leadingStack + " t: " + trailingStack + " m: " + message
+        #console.log context
 
         ###
         newContext = 
@@ -133,60 +125,24 @@ What we do with the new context depends on the type of token.
 
 Based on the token type identifier, we decide what to do to execute the token.
 
-        ###
-
-        Rough plan for this bit:
-
-        - get the "token type" character
-        - get the first "stack identifier" (character or "") or null if not a verb
-        - get the last "stack identifier" (character or "")
-
-        - construct a context based on the stack identifiers
-
-        - get the token body
-          - work out the start and end of the substring that is the token body, based on the stack identifiers
-          - use substring to get the token itself
-
-        - execute the context using the token type and the token body
-
-        ###
-        
-        # if a verb, strip the leading \ character
-        if verb then token = token.substr(1)
-
-        # Check to see if the start or end characters are stack characters; 
-        # if so, blank them out, and return the correct stack
-        inputStack = null
-        outputStack = null
-        start = token.substr(0, 1)
-        end = (if token.length > 1 then token.substr(token.length - 1, 1) else "")
-        middle = (if token.length > 2 then token.substr(1, token.length - 2) else "")
-
-        if verb
-          inputStack = parseStackCharacter(start, context, 0)
-          outputStack = parseStackCharacter(end, context, 999)
-          token = filterStackIdentifier(start) + middle + filterStackIdentifier(end)
-        else
-          inputStack = null
-          outputStack = parseStackCharacter(start, context, 999)
-          token = filterStackIdentifier(start) + middle + end
-          
-
 Token type identifiers are:
 * "#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
 * "'": interpret the body as a string. Push the string to the output stack.
 * "\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
 
+        inputStack = parseStackCharacter leadingStack, context
+        outputStack = parseStackCharacter trailingStack, context, 999
+
         # Execute the token
         if verb
-          if verbs[token]
+          if verbs[message]
             # The user has defined a verb with this token as the name, execute that
             
             # Start a new context
             verbContext = (
               primary: []
               secondary: []
-              execution: verbs[token].slice(0)
+              execution: verbs[message].slice(0)
               input: inputStack
               output: outputStack
               parent: context.execution
@@ -194,26 +150,26 @@ Token type identifiers are:
             
             # Execute that context
             executeContext verbContext, environment
-          else if stdlib[token]
+          else if stdlib[message]
             
             # There is an entry for this in the built in functions list, execute that
-            stdlib[token] inputStack, outputStack, environment
+            stdlib[message] inputStack, outputStack, environment
           else
             
             # This verb doesn't seem to be defined, throw an error
-            environment.output += "* Error: Unknown verb '" + token + "'"
+            environment.output += "* Error: Unknown verb '" + message + "'"
             halting = true
         else
           
           # Parse the string, int or float into a real value.
-          switch token.substr(0, 1)
+          switch tokenIdentifier
             when "#"
-              value = (if (token.indexOf(".") > -1) then parseFloat(token.substr(1)) else parseInt(token.substr(1)))
+              value = (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
               outputStack.push value
             when "'"
-              outputStack.push token.substr(1)
+              outputStack.push message
             else
-              environment.output += "* Error: Couldn't read noun '" + token + "' - did you forget ', #, or \\ ?"
+              environment.output += "* Error: Couldn't read noun '" + message + "' - did you forget ', #, or \\ ?"
               halting = true
       context
 
@@ -237,7 +193,7 @@ TODO: work out how to get GitHub to understand when I end an unordered list and 
       "": (context, position) -> context.primary
 
     parseStackCharacter = (character, context, position) ->
-      console.log "Loooking up " + character
+      #console.log "Loooking up " + character
 
       if not character? then return null 
 
