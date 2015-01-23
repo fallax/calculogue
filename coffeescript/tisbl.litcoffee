@@ -73,28 +73,65 @@ When executing a context, we attempt to execute each token in order.
     executeContext = (context, environment) ->
       halting = false
       while not halting and context.execution.length > 0
-        
+
         # Find a token to execute
         token = context.execution.pop()
+        
         continue if token.length < 1 # ignore any 0 length tokens completely
         
 Each token consists of, in order:
 
-one "token type identifier"
-a body.
+Either:
+
+(verb identifier)(stack identifier?)(body)(stack identifier?)
+
+Or:
+
+(stack identifier?)(noun identifier)(body)
 
         # Check if the token is a verb
         verb = token[0] is "\\"
 
-        # if so, strip the leading \ character
-        if verb then token = token.substr(1)
+        if verb
+          tokenIdentifier = token[0]
+          leadingStack = tryGetStackIdentifier token[1]
+          trailingStack = tryGetStackIdentifier token[token.length - 1]
+        else
+          leadingStack = null
+          trailingStack = tryGetStackIdentifier token[0]
+          if trailingStack then tokenIdentifier = token[0] else tokenIdentifier = token[1]
         
-The body is a string of characters, as follows:
+        messageStart = if leadingStack? and leadingStack.length is 1 then 2 else 1
+        messageEnd = token.length - (if trailingStack.length is 1 then 0 else -1)
+        message = token.substring messageStart, messageEnd
+       
+Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received and their positions.
 
-if the token type is "\": zero or one "stack identifier"s,
-one or more characters that are the "body" of the token,
-zero or one "stack identifier"s
+        console.log "Making new context"
+        console.log "Verb: " + verb + "! "
+        console.log "Token: " + token 
+        console.log "Message: '" + message + "'"
+        console.log "(" + messageStart + " - " + messageEnd + ")"
+        console.log "Leading: " + leadingStack
+        console.log "Trailing: " + trailingStack
+        console.log context
 
+        ###
+        newContext = 
+          primary: []
+          secondary: []
+          execution: if verb then verbs[token].slice(0) else []
+          input: parseStackCharacter leadingStack, context
+          output: parseStackCharacter trailingStack, context, 999
+          parent: context.execution
+
+        console.log "New context created"
+
+        ###
+
+What we do with the new context depends on the type of token.
+
+Based on the token type identifier, we decide what to do to execute the token.
 
         ###
 
@@ -113,6 +150,9 @@ zero or one "stack identifier"s
         - execute the context using the token type and the token body
 
         ###
+        
+        # if a verb, strip the leading \ character
+        if verb then token = token.substr(1)
 
         # Check to see if the start or end characters are stack characters; 
         # if so, blank them out, and return the correct stack
@@ -130,12 +170,7 @@ zero or one "stack identifier"s
           inputStack = null
           outputStack = parseStackCharacter(start, context, 999)
           token = filterStackIdentifier(start) + middle + end
-
-Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received and their positions.
-
-What we do with the new context depends on the type of token.
-
-Based on the token type identifier, we decide what to do to execute the token.
+          
 
 Token type identifiers are:
 * "#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
@@ -203,6 +238,9 @@ TODO: work out how to get GitHub to understand when I end an unordered list and 
 
     parseStackCharacter = (character, context, position) ->
       console.log "Loooking up " + character
+
+      if not character? then return null 
+
       if Object.keys(stackIdentifiers).contains character
         stackIdentifiers[character] context, position
       else 
@@ -210,8 +248,15 @@ TODO: work out how to get GitHub to understand when I end an unordered list and 
           
 ## Getting leading or trailing characters
 
+This is a weird back to front function because I got confused. I should remove it.
+
     filterStackIdentifier = (character) ->
       if Object.keys(stackIdentifiers).contains character then "" else character
+
+This is a more useful function.
+
+    tryGetStackIdentifier = (character) ->
+      if Object.keys(stackIdentifiers).contains character then character else ""
 
 ## TISBL built-in functions
 
