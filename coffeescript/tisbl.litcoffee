@@ -105,21 +105,13 @@ Or:
        
 Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received and their positions.
 
-        console.log "* " + token + " = v: " + verb + " ti: " + tokenIdentifier + " l: " + leadingStack + " t: " + trailingStack + " m: " + message
-        #console.log context
-
-        ###
         newContext = 
           primary: []
           secondary: []
-          execution: if verb then verbs[token].slice(0) else []
+          execution: []
           input: parseStackCharacter leadingStack, context
           output: parseStackCharacter trailingStack, context, 999
           parent: context.execution
-
-        console.log "New context created"
-
-        ###
 
 What we do with the new context depends on the type of token.
 
@@ -130,48 +122,37 @@ Token type identifiers are:
 * "'": interpret the body as a string. Push the string to the output stack.
 * "\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
 
-        inputStack = parseStackCharacter leadingStack, context
-        outputStack = parseStackCharacter trailingStack, context, 999
-
         # Execute the token
-        if verb
-          if verbs[message]
-            # The user has defined a verb with this token as the name, execute that
-            
-            # Start a new context
-            verbContext = (
-              primary: []
-              secondary: []
-              execution: verbs[message].slice(0)
-              input: inputStack
-              output: outputStack
-              parent: context.execution
-            )
-            
-            # Execute that context
-            executeContext verbContext, environment
-          else if stdlib[message]
-            
-            # There is an entry for this in the built in functions list, execute that
-            stdlib[message] inputStack, outputStack, environment
-          else
-            
-            # This verb doesn't seem to be defined, throw an error
-            environment.output += "* Error: Unknown verb '" + message + "'"
-            halting = true
-        else
+        switch tokenIdentifier
+          when "#"
+            value = (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
+            newContext.output.push value
           
-          # Parse the string, int or float into a real value.
-          switch tokenIdentifier
-            when "#"
-              value = (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
-              outputStack.push value
-            when "'"
-              outputStack.push message
-            else
-              environment.output += "* Error: Couldn't read noun '" + message + "' - did you forget ', #, or \\ ?"
+          when "'"
+            newContext.output.push message
+
+          when "\\"
+            if verbs[message]
+              # The user has defined a verb with this token as the name, execute that
+              newContext.execution = verbs[message].slice(0)
+              
+              # Execute that context
+              executeContext newContext, environment
+
+            else if stdlib[message]
+              # There is an entry for this in the built in functions list, execute that
+              stdlib[message] newContext.input, newContext.output, environment
+            
+            else  
+              # This verb doesn't seem to be defined, throw an error
+              environment.output += "* Error: Unknown verb '" + message + "'"
               halting = true
+          else
+            environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
+            halting = true
+
       context
+
 
 
 ### Stack identifiers
