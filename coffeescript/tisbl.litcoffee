@@ -191,80 +191,80 @@ This function takes a character, and returns a character identifying a stack if 
 
     # The dictionary of verbs in the standard library
     stdlib =
-      mv: (inputStack, outputStack) -> outputStack.push inputStack.pop()
-      rm: (inputStack, outputStack) -> inputStack.pop()
-      dup: (inputStack, outputStack) -> outputStack.push inputStack[inputStack.length - 1]
-      out: (inputStack, outputStack, environment) -> environment.output += inputStack.pop()
-      _: (inputStack, outputStack) -> outputStack.push inputStack.pop() + " "
-      n: (inputStack, outputStack) -> outputStack.push inputStack.pop() + "\n"
+      mv: (input, ouptut) -> ouptut.push input.pop()
+      rm: (input, ouptut) -> input.pop()
+      dup: (input, ouptut) -> ouptut.push input[input.length - 1]
+      out: (input, ouptut, environment) -> environment.output += input.pop()
+      _: (input, ouptut) -> ouptut.push input.pop() + " "
+      n: (input, ouptut) -> ouptut.push input.pop() + "\n"
 
-      swap: (inputStack, outputStack) ->
-        outputStack.push inputStack.pop()
-        outputStack.push inputStack.pop()
+      swap: (input, ouptut) ->
+        ouptut.push input.pop()
+        ouptut.push input.pop()
 
       # Arithmetic - TODO - requires properly implementing the number type in TISBL
 
-      "+": (inputStack, outputStack) ->
-        a = inputStack.pop()
-        b = inputStack.pop()
-        outputStack.push b + a
+      "+": (input, ouptut) ->
+        a = input.pop()
+        b = input.pop()
+        ouptut.push b + a
 
-      "-": (inputStack, outputStack) ->
-        a = inputStack.pop()
-        b = inputStack.pop()
-        outputStack.push b - a
+      "-": (input, ouptut) ->
+        a = input.pop()
+        b = input.pop()
+        ouptut.push b - a
 
-      "*": (inputStack, outputStack) ->
-        a = inputStack.pop()
-        b = inputStack.pop()
-        outputStack.push b * a
+      "*": (input, ouptut) ->
+        a = input.pop()
+        b = input.pop()
+        ouptut.push b * a
 
-      "eq?": (inputStack, outputStack) ->
-        a = inputStack.pop()
-        b = inputStack.pop()
-        outputStack.push (if b is a then 1 else 0)
+      "eq?": (input, ouptut) ->
+        a = input.pop()
+        b = input.pop()
+        ouptut.push (if b is a then 1 else 0)
 
-      not: (inputStack, outputStack) ->
-        a = inputStack.pop()
-        outputStack.push (if a is 0 then 1 else 0)
+      not: (input, ouptut) ->
+        a = input.pop()
+        ouptut.push (if a is 0 then 1 else 0)
 
-      verb: (inputStack, outputStack) ->
-        verbName = inputStack.pop()
-        verbLength = inputStack.pop()
-        verbs[verbName] = (inputStack.pop() for i in [0..verbLength-1])
+      verb: (input, ouptut) ->
+        verbName = input.pop()
+        verbLength = input.pop()
+        verbs[verbName] = (input.pop() for i in [0..verbLength-1])
 
-      multipop: (inputStack, outputStack) ->
-        length = inputStack.pop()
+      multipop: (input, ouptut) ->
+        length = input.pop()
         for [0..length]
-          outputStack.push inputStack.pop()
+          ouptut.push input.pop()
 
-      if: (inputStack, outputStack) ->
-        length = inputStack.pop()
-        stack = (inputStack.pop() for i in [0..(length-1)])
+      if: (input, ouptut) ->
+        length = input.pop()
+        stack = (input.pop() for i in [0..(length-1)])
 
         context = (
           primary: []
           secondary: []
           execution: stack
-          input: inputStack
-          output: outputStack
+          input: input
+          output: ouptut
           parent: null
         )
-        condition = inputStack.pop()
+        condition = input.pop()
         unless condition is 0
           console.log "running if statement (" + condition + ")"
           executeContext context, output
         else
           console.log "not running if statement (" + condition + ")"
 
-      while: (inputStack, outputStack) ->
+      while: (input, ouptut) ->
         console.log "running while loop"
 
-        length = inputStack.pop()
-        stack = (inputStack.pop() for i in [0..(length-1)])
+        length = input.pop()
+        stack = (input.pop() for i in [0..(length-1)])
 
         loop
-          condition = inputStack.pop()
+          condition = input.pop()
           if condition is 0
             console.log "breaking out of while..." + condition
             break
@@ -274,8 +274,8 @@ This function takes a character, and returns a character identifying a stack if 
               primary: []
               secondary: []
               execution: stack.slice(0)
-              input: inputStack
-              output: outputStack
+              input: input
+              output: ouptut
               parent: null
             )
             executeContext context, output
