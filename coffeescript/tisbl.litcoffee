@@ -115,44 +115,54 @@ Before executing the token, we create a context for that token to be executed in
 
 What we do with the new context depends on the type of token.
 
-Based on the token type identifier, we decide what to do to execute the token.
+Based on the token type identifier, we then execute the token.
+
+        halting = executeToken tokenIdentifier, message, newContext, environment
+
+Funally the modified context is passed back to the parent (TODO: I don't think this actually does anything? Remove?)
+
+      context
+
+## Execting a token
 
 Token type identifiers are:
 * "#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
 * "'": interpret the body as a string. Push the string to the output stack.
 * "\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
 
-        # Execute the token
-        switch tokenIdentifier
-          when "#"
-            value = (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
-            newContext.output.push value
-          
-          when "'"
-            newContext.output.push message
+This method executes an individual token. It returns true if execution should halt suddenly (e.g. in the case of an error), and false otherwise.
 
-          when "\\"
-            if verbs[message]
-              # The user has defined a verb with this token as the name, execute that
-              newContext.execution = verbs[message].slice(0)
-              
-              # Execute that context
-              executeContext newContext, environment
+    executeToken = (tokenIdentifier, message, newContext, environment) ->
+      # Execute the token
+      switch tokenIdentifier
+        when "#"
+          value = (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
+          newContext.output.push value
+        
+        when "'"
+          newContext.output.push message
 
-            else if stdlib[message]
-              # There is an entry for this in the built in functions list, execute that
-              stdlib[message] newContext.input, newContext.output, environment
+        when "\\"
+          if verbs[message]
+            # The user has defined a verb with this token as the name, execute that
+            newContext.execution = verbs[message].slice(0)
             
-            else  
-              # This verb doesn't seem to be defined, throw an error
-              environment.output += "* Error: Unknown verb '" + message + "'"
-              halting = true
-          else
-            environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
-            halting = true
+            # Execute that context
+            executeContext newContext, environment
 
-      context
+          else if stdlib[message]
+            # There is an entry for this in the built in functions list, execute that
+            stdlib[message] newContext.input, newContext.output, environment
+          
+          else  
+            # This verb doesn't seem to be defined, throw an error
+            environment.output += "* Error: Unknown verb '" + message + "'"
+            return true
+        else
+          environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
+          return true
 
+      return false
 
 
 ### Stack identifiers
