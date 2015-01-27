@@ -117,49 +117,38 @@ What we do with the new context depends on the type of token.
 
 Based on the token type identifier, we then execute the token.
 
-        halting = executeToken tokenIdentifier, message, newContext, environment
+        if not tokenTypes[tokenIdentifier]
+          environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
+          halting = true
+        else
+          halting = tokenTypes[tokenIdentifier] message, newContext, environment
+          #  halting = tokenTypes[tokenIdentifier] message, newContext, environment
 
 ## Execting a token
 
-Token type identifiers are:
-* "#": interpret the body as a number - if it contains a ".", a float; otherwise, an int. Push this to the output stack.
-* "'": interpret the body as a string. Push the string to the output stack.
-* "\": interpret the body as a verb name. Look up the verb name in the verbs table, set the execution stack of the new context to be a copy of the value in the verbs table, and execute that context.
+Token type identifiers are a single character that explain how to execute that token. 
 
-This method executes an individual token. It returns true if execution should halt suddenly (e.g. in the case of an error), and false otherwise.
+There are three token types: # (number), ' (string), and \ (verb). 
 
-    executeToken = (tokenIdentifier, message, newContext, environment) ->
-      # Execute the token
-      switch tokenIdentifier
-        when "#"
-          value = (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
-          newContext.output.push value
-        
-        when "'"
-          newContext.output.push message
-
-        when "\\"
-          if verbs[message]
-            # The user has defined a verb with this token as the name, execute that
-            newContext.execution = verbs[message].slice(0)
-            
-            # Execute that context
-            executeContext newContext, environment
-
-          else if stdlib[message]
-            # There is an entry for this in the built in functions list, execute that
-            stdlib[message] newContext.input, newContext.output, environment
-          
-          else  
-            # This verb doesn't seem to be defined, throw an error
-            environment.output += "* Error: Unknown verb '" + message + "'"
-            return true
-        else
-          environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
-          return true
-
-      return false
-
+    tokenTypes = 
+      "#": (message, newContext, environment) ->
+        # interpret the body as a number - either a float (if it has a decimal point), otherwise an integer
+        newContext.output.push (if (message.indexOf(".") > -1) then parseFloat(message) else parseInt(message))
+        false
+      "'": (message, newContext, environment) ->
+        # interpret the message as a string literal
+        newContext.output.push message
+        false
+      "\\": (message, newContext, environment) ->
+        # interpret the message as a verb name, and try and find it either in the standard library or the user defined verbs
+        if not verbs[message] and not stdlib[message]
+          environment.output += "No such verb: " + message; return true
+        if verbs[message]
+          newContext.execution = verbs[message].slice(0)
+          executeContext newContext, environment
+        if stdlib[message]
+          stdlib[message] newContext.input, newContext.output, environment
+        false
 
 ### Stack identifiers
 
