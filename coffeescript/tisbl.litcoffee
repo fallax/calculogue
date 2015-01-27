@@ -119,10 +119,6 @@ Based on the token type identifier, we then execute the token.
 
         halting = executeToken tokenIdentifier, message, newContext, environment
 
-Funally the modified context is passed back to the parent (TODO: I don't think this actually does anything? Remove?)
-
-      context
-
 ## Execting a token
 
 Token type identifiers are:
