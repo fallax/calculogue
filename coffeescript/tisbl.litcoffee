@@ -15,7 +15,7 @@ TISBL is always interpreted within some kind of environment that provides a stan
     window.tisbl = (input, environment) ->
       splitInput = load(input);
       
-      # initialise root stack
+      # initialise root context
       root =
         primary: []
         secondary: []
@@ -113,16 +113,15 @@ Before executing the token, we create a context for that token to be executed in
           output: parseStackCharacter trailingStack, context, 999
           parent: context.execution
 
-What we do with the new context depends on the type of token.
-
 Based on the token type identifier, we then execute the token.
 
         if not tokenTypes[tokenIdentifier]
+          # this token is gibberish - throw an error
           environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
           halting = true
         else
+          # execute the code for this token in the correct context
           halting = tokenTypes[tokenIdentifier] message, newContext, environment
-          #  halting = tokenTypes[tokenIdentifier] message, newContext, environment
 
 ## Execting a token
 
@@ -180,20 +179,17 @@ TODO: work out how to get GitHub to understand when I end an unordered list and 
           
 ## Getting leading or trailing characters
 
-This is a weird back to front function because I got confused. I should remove it.
-
-    filterStackIdentifier = (character) ->
-      if Object.keys(stackIdentifiers).contains character then "" else character
-
-This is a more useful function.
+This function takes a character, and returns a character identifying a stack if it can find one.
 
     tryGetStackIdentifier = (character) ->
       if Object.keys(stackIdentifiers).contains character then character else ""
 
 ## TISBL built-in functions
 
+    # The list of user-defined verbs
     verbs = {}
 
+    # The dictionary of verbs in the standard library
     stdlib =
       mv: (inputStack, outputStack) -> outputStack.push inputStack.pop()
       rm: (inputStack, outputStack) -> inputStack.pop()
