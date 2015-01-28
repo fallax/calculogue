@@ -98,7 +98,7 @@ Or:
           trailingStack = tryGetStackIdentifier token[token.length - 1]
           message = token.substring (if leadingStack? and leadingStack.length is 1 then 2 else 1), token.length - (if trailingStack.length is 1 then 1 else 0)
         else
-          leadingStack = null
+          leadingStack = ""
           trailingStack = tryGetStackIdentifier token[0]
           if trailingStack is "" then tokenIdentifier = token[0] else tokenIdentifier = token[1]
           message = token.substring (if trailingStack.length is 1 then 2 else 1), token.length
@@ -109,8 +109,8 @@ Before executing the token, we create a context for that token to be executed in
           primary: []
           secondary: []
           execution: []
-          input: parseStackCharacter leadingStack, context
-          output: parseStackCharacter trailingStack, context, 999
+          input: stackIdentifiers[leadingStack] context
+          output: stackIdentifiers[trailingStack] context, 999
           parent: context.execution
 
 Based on the token type identifier, we then execute the token.
@@ -158,24 +158,14 @@ Stack identifiers represent:
 * ";": parent execution stack
 * no identifier: primary data stack
 
-TODO: work out how to get GitHub to understand when I end an unordered list and start actual code
+For each stack identifier, there is a function that given the context returns the correct stack from that context. 
 
     stackIdentifiers = 
       ".": (context, position) -> (if position is 0 then context.input else context.output),
-      ":": (context, position) -> context.secondary,
-      ",": (context, position) -> context.execution,
-      ";": (context, position) -> context.parent,
-      "": (context, position) -> context.primary
-
-    parseStackCharacter = (character, context, position) ->
-      #console.log "Loooking up " + character
-
-      if not character? then return null 
-
-      if Object.keys(stackIdentifiers).contains character
-        stackIdentifiers[character] context, position
-      else 
-        context.primary
+      ":": (context) -> context.secondary,
+      ",": (context) -> context.execution,
+      ";": (context) -> context.parent,
+      "": (context) -> context.primary
           
 ## Getting leading or trailing characters
 
