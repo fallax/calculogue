@@ -151,14 +151,7 @@ There are three token types: # (number), ' (string), and \ (verb).
 
 ### Stack identifiers
 
-Stack identifiers represent:
-* ".": if the leading character, the input stack of the parent context; if the trailing character, the output stack of the parent context
-* ":": secondary data stack
-* ",": execution stack
-* ";": parent execution stack
-* no identifier: primary data stack
-
-For each stack identifier, there is a function that given the context returns the correct stack from that context. 
+Each stack identifier represents a stack within the current context. 
 
     stackIdentifiers = 
       ".": (context, position) -> (if position is 0 then context.input else context.output),
