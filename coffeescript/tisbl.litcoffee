@@ -75,6 +75,8 @@ This method filters out the comment text and just leaves the code that needs to 
 
 When executing a context, we attempt to execute each token in order until there is none left, or an error occurs that requires us to stop execution completely.
 
+Each token is parsed to understand it. Based on values found we create a context for the token to be executed in. Finally, based on the type of token, we execute the token in that context.
+
     executeContext = (context, environment) ->
       # Variable to keep track of whether a fatal error has occurred.
       halting = false
@@ -85,7 +87,22 @@ When executing a context, we attempt to execute each token in order until there 
         token = context.execution.pop()
         
         continue if token.length < 1 # ignore any 0 length tokens completely
-        
+
+        parsedToken = parseToken token
+        newContext = makeContext parsedToken, context
+
+        if not tokenTypes[parsedToken.tokenIdentifier]
+          # this token is gibberish - throw an error
+          environment.output += "* Error: Couldn't read token '" + token + "' - did you forget ', #, or \\ ?"
+          halting = true
+        else
+          # execute the code for this token in the correct context
+          halting = tokenTypes[parsedToken.tokenIdentifier] parsedToken.message, newContext, environment
+
+## Turning tokens into contexts
+
+First we need to be able to read in the values from a token.
+
 Each token consists of, in order:
 
 Either:
@@ -96,39 +113,37 @@ Or:
 
 (stack identifier?)(noun identifier)(body)
 
-        # Check if the token is a verb
-        verb = token[0] is "\\"
+    parseToken = (token) ->
+      # return the details of what characters we got in each slot
+      parsedToken = {}
 
-        if verb
-          tokenIdentifier = token[0]
-          leadingStack = tryGetStackIdentifier token[1]
-          trailingStack = tryGetStackIdentifier token[token.length - 1]
-          message = token.substring (if leadingStack? and leadingStack.length is 1 then 2 else 1), token.length - (if trailingStack.length is 1 then 1 else 0)
-        else
-          leadingStack = ""
-          trailingStack = tryGetStackIdentifier token[0]
-          if trailingStack is "" then tokenIdentifier = token[0] else tokenIdentifier = token[1]
-          message = token.substring (if trailingStack.length is 1 then 2 else 1), token.length
-       
-Before executing the token, we create a context for that token to be executed in. We do this based on the two stack identifiers we received and their positions.
+      # Check if the token is a verb
+      verb = token[0] is "\\"
 
-        newContext = 
-          primary: []
-          secondary: []
-          execution: []
-          input: stackIdentifiers[leadingStack] context
-          output: stackIdentifiers[trailingStack] context, 999
-          parent: context.execution
+      if verb
+        parsedToken.tokenIdentifier = token[0]
+        parsedToken.inputStack = tryGetStackIdentifier token[1]
+        parsedToken.outputStack = tryGetStackIdentifier token[token.length - 1]
+        parsedToken.message = token.substring (if parsedToken.inputStack? and parsedToken.inputStack.length is 1 then 2 else 1), token.length - (if parsedToken.outputStack.length is 1 then 1 else 0)
+      else
+        parsedToken.inputStack = "" # set this to whatever, used for nothing
+        parsedToken.outputStack = tryGetStackIdentifier token[0]
+        if parsedToken.outputStack is "" then parsedToken.tokenIdentifier = token[0] else parsedToken.tokenIdentifier = token[1]
+        parsedToken.message = token.substring (if parsedToken.outputStack.length is 1 then 2 else 1), token.length
 
-Based on the token type identifier, we then execute the token.
+      parsedToken
 
-        if not tokenTypes[tokenIdentifier]
-          # this token is gibberish - throw an error
-          environment.output += "* Error: Couldn't read token '" + message + "' - did you forget ', #, or \\ ?"
-          halting = true
-        else
-          # execute the code for this token in the correct context
-          halting = tokenTypes[tokenIdentifier] message, newContext, environment
+Next, we need to be able to turn the parsed details of a token into a context. We do this based on the two stack identifiers.
+
+    makeContext = (parsedToken, context) ->
+      {
+        primary: []
+        secondary: []
+        execution: []
+        input: stackIdentifiers[parsedToken.inputStack] context
+        output: stackIdentifiers[parsedToken.outputStack] context, 999
+        parent: context.execution
+      }
 
 ## Execting a token
 
