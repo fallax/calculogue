@@ -8,23 +8,28 @@ For the purposes of making the rest of the code slightly clearer, we define a si
 
     Array.prototype.contains = (element) -> (return true) for item in this when item is element; false;
 
+(Eventually we'll get [Array.includes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes) in JavaScript to do this... but it doesn't exist yet.)
+
 ## Invoking the interpreter
 
-TISBL is always interpreted within some kind of environment that provides a standard output to write to.
+A TISBL interpreter takes in some input code, and modifies an "environment" that it can write to and read from.
+
+To execute the code we create a "context" - a set of several different stacks - and put the input code into the "execution" stack. To run the code, we read code in from the execution stack, and based on the read values, we update the stacks.
 
     window.tisbl = (input, environment) ->
-      splitInput = load(input);
-      
-      # initialise root context
+      code = load(input);
+
       root =
         primary: []
         secondary: []
-        execution: splitInput
+        execution: code
         input: null
         output: null
         parent: null
 
+      # Reads out code from the execution stack and executes it until there is none left.
       outputContext = executeContext(root, environment)
+
       environment.output
 
 ## Loading TISBL code in from a file
@@ -68,10 +73,12 @@ This method filters out the comment text and just leaves the code that needs to 
 
 ## Executing a context
 
-When executing a context, we attempt to execute each token in order.
+When executing a context, we attempt to execute each token in order until there is none left, or an error occurs that requires us to stop execution completely.
 
     executeContext = (context, environment) ->
+      # Variable to keep track of whether a fatal error has occurred.
       halting = false
+
       while not halting and context.execution.length > 0
 
         # Find a token to execute
