@@ -140,8 +140,8 @@ Next, we need to be able to turn the parsed details of a token into a context. W
         primary: []
         secondary: []
         execution: []
-        input: stackIdentifiers[parsedToken.inputStack] context
-        output: stackIdentifiers[parsedToken.outputStack] context, 999
+        input: stackIdentifiers[parsedToken.inputStack] context, "input"
+        output: stackIdentifiers[parsedToken.outputStack] context, "output"
         parent: context.execution
       }
 
@@ -176,7 +176,7 @@ There are three token types: # (number), ' (string), and \ (verb).
 Each stack identifier represents a stack within the current context. 
 
     stackIdentifiers = 
-      ".": (context, position) -> (if position is 0 then context.input else context.output),
+      ".": (context, stack) -> (if stack is "input" then context.input else context.output),
       ":": (context) -> context.secondary,
       ",": (context) -> context.execution,
       ";": (context) -> context.parent,
