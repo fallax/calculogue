@@ -122,7 +122,7 @@ Each *stack identifier* represents a stack within the current context.
       ";": (context) -> context.parent,
       "": (context) -> context.primary
 
-The verb identifier is "\". The noun identifier is "'".
+The verb identifier is "\". The noun identifier can be a number of different characters (which are described in the next section).
 
     VERB_IDENTIFIER = "\\"
 
