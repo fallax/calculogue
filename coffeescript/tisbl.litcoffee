@@ -113,12 +113,27 @@ Or:
 
 (stack identifier?)(noun identifier)(body)
 
+Each *stack identifier* represents a stack within the current context. 
+
+    stackIdentifiers = 
+      ".": (context, stack) -> (if stack is "input" then context.input else context.output),
+      ":": (context) -> context.secondary,
+      ",": (context) -> context.execution,
+      ";": (context) -> context.parent,
+      "": (context) -> context.primary
+
+The verb identifier is "\". The noun identifier is "'".
+
+    VERB_IDENTIFIER = "\\"
+
+Using the fact that we know the structure of these tokens, we can easily parse them using regular expressions. Unfortunately, I've not written that bit yet, so here's a much nastier way of getting them instead.
+
     parseToken = (token) ->
       # return the details of what characters we got in each slot
       parsedToken = {}
 
       # Check if the token is a verb
-      verb = token[0] is "\\"
+      verb = token[0] is VERB_IDENTIFIER
 
       if verb
         parsedToken.tokenIdentifier = token[0]
@@ -170,17 +185,6 @@ There are three token types: # (number), ' (string), and \ (verb).
         if stdlib[message]
           stdlib[message] newContext.input, newContext.output, environment
         false
-
-### Stack identifiers
-
-Each stack identifier represents a stack within the current context. 
-
-    stackIdentifiers = 
-      ".": (context, stack) -> (if stack is "input" then context.input else context.output),
-      ":": (context) -> context.secondary,
-      ",": (context) -> context.execution,
-      ";": (context) -> context.parent,
-      "": (context) -> context.primary
           
 ## Getting leading or trailing characters
 
