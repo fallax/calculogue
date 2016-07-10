@@ -1,0 +1,29 @@
+TISBL {
+Line  =  NonComment ? Comment ?
+ 
+Comment = "%" Text
+
+Text = any *
+
+NonComment = Exp *
+
+Exp = VerbExp | NounExp
+
+VerbExp = "\\" Stack ident Stack
+NounExp = "#" number | "'" ident
+
+Stack = "." | ":" | "," | ";" | ""
+    
+PriExp
+  = ident
+  | number
+
+ident  (an identifier)
+  = identCharacter*
+
+identCharacter = alnum | "_" | "+" | "-" | "*" | "'" |  "." | ":" | "," | ";" | "?"
+
+number  (a number)
+  = digit* "." digit+  -- fract
+  | digit+             -- whole
+}
